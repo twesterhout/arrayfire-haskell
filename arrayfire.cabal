@@ -18,8 +18,8 @@ description:         High-level Haskell bindings to the ArrayFire General-purpos
 
 flag disable-default-paths
     description:    When enabled, don't add default hardcoded include/link dirs by default. Needed for hermetic builds like in nix.
-    default:        False
-    manual:         True
+    default:        True
+    manual:         False
 
 custom-setup
  setup-depends:
