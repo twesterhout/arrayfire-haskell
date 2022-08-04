@@ -26,8 +26,13 @@
               };
               # Non-Haskell shell tools go here
               shell.buildInputs = with pkgs; [
+                arrayfire.packages.${system}.pkg
                 nixpkgs-fmt
               ];
+
+              shell.shellHook = ''
+                export LD_LIBRARY_PATH=${arrayfire.packages.${system}.pkg}/lib:$LD_LIBRARY_PATH
+              '';
             };
         })
       ];
