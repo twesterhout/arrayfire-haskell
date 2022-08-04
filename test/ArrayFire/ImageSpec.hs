@@ -15,4 +15,8 @@ spec :: Spec
 spec =
   describe "Image tests" $ do
     it "Should test if Image I/O is available" $ do
-      isImageIOAvailable `shouldReturn` True
+      -- We want the function to run to make sure there are no segfaults or related issues, but
+      -- we cannot assume that it should return True because ArrayFire could have been compiled
+      -- without graphics support
+      r <- isImageIOAvailable
+      r `shouldBe` r

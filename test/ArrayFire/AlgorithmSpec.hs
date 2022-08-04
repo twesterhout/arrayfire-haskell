@@ -63,7 +63,7 @@ spec =
       A.product (A.vector @Double 10 [1..]) 0 `shouldBe` 3628800.0
       A.product (A.vector @(A.Complex Double) 10 (repeat (1 A.:+ 1))) 0 `shouldBe` A.scalar (0.0 A.:+ 32.0)
       A.product (A.vector @(A.Complex Float) 10 (repeat (1 A.:+ 1))) 0 `shouldBe` A.scalar (0.0 A.:+ 32.0)
-      A.product (A.vector @A.CBool 10 (repeat 1)) 0 `shouldBe` 10  -- FIXME: This is a bug, should be 0
+      A.product (A.vector @A.CBool 10 (repeat 1)) 0 `shouldBe` 1
       A.product (A.vector @A.CBool 10 (repeat 0)) 0 `shouldBe` 0
     it "Should product a default value to replace NaN" $ do
       A.productNaN (A.vector @Float 10 [1..]) 0 1.0 `shouldBe` 3628800.0
