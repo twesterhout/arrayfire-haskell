@@ -104,7 +104,6 @@
         "type": "github"
       }
     },
->>>>>>> 44927d93e70d58a6fd2516a900796ad0a896a501
     "flake-utils": {
       "locked": {
         "lastModified": 1656928814,
@@ -120,15 +119,6 @@
         "type": "github"
       }
     },
-<<<<<<< HEAD
-    "nixpkgs": {
-      "locked": {
-        "lastModified": 1659444051,
-        "narHash": "sha256-CEIjZ69Kn4Sasrwyo7z3vxIFhnQRnr4cxnLSHm5DYgA=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "2a03bd844a74eea2d0bc6a42800932e9e378ec99",
-=======
     "flake-utils_2": {
       "locked": {
         "lastModified": 1656928814,
