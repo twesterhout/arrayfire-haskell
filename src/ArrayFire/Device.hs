@@ -82,6 +82,8 @@ getDevice = fromIntegral <$> afCall1 af_get_device
 --
 -- __Note:__ this function may only be called after 'manualEval' to force the evaluation. See
 -- <https://arrayfire.org/docs/interop_cuda.htm> for an example.
+--
+-- @since 0.6.1.0
 unsafeGetDevicePtr
   :: AFType a
   => Array a
@@ -94,6 +96,7 @@ unsafeGetDevicePtr arr =
 -- af_err af_lock_device_ptr(const af_array arr);
 -- | Return control of an array back to ArrayFire.
 --
+-- @since 0.6.1.0
 unsafeUnlockDevicePtr
   :: AFType a
   => Array a

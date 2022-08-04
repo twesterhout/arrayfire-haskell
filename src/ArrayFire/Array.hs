@@ -252,6 +252,8 @@ getDataRefCount =
 -- >>> someArray = scalar @Double 5 + scalar @Double 10
 -- >>> manualEval someArray
 -- ()
+--
+-- @since 0.6.1.0
 manualEval
   :: AFType a
   => Array a
@@ -259,6 +261,8 @@ manualEval
 manualEval = (`inPlace` af_eval)
 
 -- | Temporarily get the underlying device data pointer
+--
+-- @since 0.6.1.0
 withDevicePtr
   :: AFType a
   => Array a
