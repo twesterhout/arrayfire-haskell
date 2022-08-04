@@ -28,7 +28,7 @@
 --------------------------------------------------------------------------------
 module ArrayFire.Arith where
 
-import Prelude                  (Bool(..), ($), (.), flip, fromEnum, fromIntegral, Real, RealFrac)
+import Prelude                  (Bool(..), ($), (.), Floating, flip, fromEnum, fromIntegral, Real, RealFrac)
 
 import Data.Coerce
 import Data.Proxy
@@ -1925,7 +1925,7 @@ log2 = flip op1 af_log2
 --     3.0000
 --     3.1623
 sqrt
-  :: AFType a
+  :: (AFType a, Floating a)
   => Array a
   -- ^ Input array
   -> Array a
@@ -1948,7 +1948,7 @@ sqrt = flip op1 af_sqrt
 --     2.0801
 --     2.1544
 cbrt
-  :: AFType a
+  :: (AFType a, Floating a)
   => Array a
   -- ^ Input array
   -> Array a
