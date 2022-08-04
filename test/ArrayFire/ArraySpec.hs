@@ -6,6 +6,7 @@ import Control.Exception
 import Data.Complex
 import Data.Word
 import Foreign.C.Types
+import Foreign.Marshal.Array (peekArray)
 import GHC.Int
 import Test.Hspec
 
@@ -154,3 +155,10 @@ spec =
 
       let arr = mkArray @Word [10] [1..10]
       toList arr `shouldBe` [1..10]
+
+    it "Should obtain raw device pointers" $ do
+      oldBackend <- getActiveBackend
+      bracket (setBackend CPU) (\_ -> setBackend oldBackend) $ \_ -> do
+        let arr = scalar 2 + mkArray @Float [3] (repeat 5.5)
+        withDevicePtr arr $ \cpuPtr ->
+          peekArray 3 cpuPtr `shouldReturn` (take 3 (repeat 7.5))

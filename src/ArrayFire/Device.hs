@@ -19,7 +19,11 @@
 module ArrayFire.Device where
 
 import Foreign.C.String
+import Foreign.Ptr (Ptr, castPtr)
+import Foreign.Marshal.Alloc (alloca)
+import Foreign.Storable (Storable(..))
 import ArrayFire.Internal.Device
+import ArrayFire.Internal.Types (AFType, Array)
 import ArrayFire.FFI
 
 -- | Retrieve info from ArrayFire API
@@ -70,6 +74,32 @@ setDevice (fromIntegral -> x) = afCall (af_set_device x)
 getDevice :: IO Int
 getDevice = fromIntegral <$> afCall1 af_get_device
 
+-- af_err af_get_device_ptr(void **ptr, const af_array arr);
+-- | Retrieves the raw device pointer
+--
+-- You should call 'unsafeUnlockDevicePtr' when you are done with the pointer to return control back
+-- to ArrayFire.
+--
+-- __Note:__ this function may only be called after 'manualEval' to force the evaluation. See
+-- <https://arrayfire.org/docs/interop_cuda.htm> for an example.
+unsafeGetDevicePtr
+  :: AFType a
+  => Array a
+  -> IO (Ptr a)
+unsafeGetDevicePtr arr =
+  alloca $ \dataPtrPtr -> do
+    inPlace arr (af_get_device_ptr dataPtrPtr)
+    castPtr <$> peek dataPtrPtr
+
+-- af_err af_lock_device_ptr(const af_array arr);
+-- | Return control of an array back to ArrayFire.
+--
+unsafeUnlockDevicePtr
+  :: AFType a
+  => Array a
+  -> IO ()
+unsafeUnlockDevicePtr = (`inPlace` af_unlock_device_ptr)
+
 -- af_err af_sync(const int device);
 -- af_err af_alloc_device(void **ptr, const dim_t bytes);
 -- af_err af_free_device(void *ptr);
@@ -87,4 +117,3 @@ getDevice = fromIntegral <$> afCall1 af_get_device
 -- af_err af_unlock_device_ptr(const af_array arr);
 -- af_err af_lock_array(const af_array arr);
 -- af_err af_is_locked_array(bool *res, const af_array arr);
--- af_err af_get_device_ptr(void **ptr, const af_array arr);
