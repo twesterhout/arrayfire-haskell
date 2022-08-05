@@ -178,26 +178,18 @@ mkArray
   -- ^ Returned array
 {-# NOINLINE mkArray #-}
 mkArray dims xs =
-  unsafePerformIO $ do
-    when (Prelude.length (take size xs) < size) $ do
-      let msg = "Invalid elements provided. "
-           <> "Expected "
-           <> show size
-           <> " elements received "
-           <> show (Prelude.length xs)
-      throwIO (AFException SizeError 203 msg)
-    dataPtr <- castPtr <$> newArray (Prelude.take size xs)
-    let ndims = fromIntegral (Prelude.length dims)
-    alloca $ \arrayPtr -> do
-      zeroOutArray arrayPtr
-      dimsPtr <- newArray (DimT . fromIntegral <$> dims)
-      throwAFError =<< af_create_array arrayPtr dataPtr ndims dimsPtr dType
-      free dataPtr >> free dimsPtr
-      arr <- peek arrayPtr
-      Array <$> newForeignPtr af_release_array_finalizer arr
-    where
-      size  = Prelude.product dims
-      dType = afType (Proxy @array)
+  unsafePerformIO $
+    withArrayLen (take size xs) $ \xsSize xsPtr -> do
+      when (xsSize /= size) $ do
+        let msg = "Invalid elements provided. "
+             <> "Expected "
+             <> show size
+             <> " elements received "
+             <> show xsSize
+        throwIO (AFException SizeError 203 msg)
+      unsafeFromHostPtrShape xsPtr dims
+  where
+    size  = Prelude.product dims
 
 -- af_err af_create_handle(af_array *arr, const unsigned ndims, const dim_t * const dims, const af_dtype type);
 
@@ -271,6 +263,28 @@ withDevicePtr
 withDevicePtr arr op = do
   manualEval arr
   bracket (unsafeGetDevicePtr arr) (\_ -> unsafeUnlockDevicePtr arr) op
+
+-- | Construct an array from a host memory pointer.
+--
+-- @since 0.6.1.0
+unsafeFromHostPtrShape
+  :: forall a
+   . AFType a
+  -- | Host data pointer
+  => Ptr a
+  -- | Dimensions
+  -> [Int]
+  -- | A new array
+  -> IO (Array a)
+unsafeFromHostPtrShape hostPtr dims =
+  withArrayLen (DimT . fromIntegral <$> dims) $ \dimsSize dimsPtr -> do
+    let ndims = fromIntegral dimsSize
+        dType = afType (Proxy @a)
+    alloca $ \arrayPtr -> do
+      zeroOutArray arrayPtr
+      throwAFError =<< af_create_array arrayPtr (castPtr hostPtr) ndims dimsPtr dType
+      arr <- peek arrayPtr
+      Array <$> newForeignPtr af_release_array_finalizer arr
 
 -- af_err af_eval_multiple(const int num, af_array *arrays);
 
