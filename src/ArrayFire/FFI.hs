@@ -28,6 +28,7 @@ import Foreign.Storable
 import Foreign.Ptr
 import Foreign.C
 import Foreign.Marshal.Alloc
+import Foreign.Marshal.Array (withArrayLen)
 import System.IO.Unsafe
 
 op3
@@ -502,6 +503,15 @@ infoFromArray4 (Array fptr1) op =
                     <*> peek ptrInput2
                     <*> peek ptrInput3
                     <*> peek ptrInput4
+
+withSeqs
+  :: [Seq]
+  -> (CUInt -> Ptr AFSeq -> IO a)
+  -> IO a
+{-# INLINE withSeqs #-}
+withSeqs seqs op =
+  withArrayLen (toAFSeq <$> seqs) $ \n seqsPtr ->
+    op (fromIntegral n) seqsPtr
 
 foreign import ccall unsafe "zeroOutArray"
   zeroOutArray :: Ptr AFArray -> IO ()
