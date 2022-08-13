@@ -47,7 +47,8 @@ lookup arr indices n =
 -- | @assign lhs slice rhs@ is the equivalent of Python's @lhs[slice] = rhs@, i.e. we assign 'rhs'
 -- to 'lhs' at indices specified by 'slice'.
 assign
-  :: Array a
+  :: AFType a
+  => Array a
   -- ^ Left-hand side
   -> [Seq]
   -- ^ Slice of the left-hand side
