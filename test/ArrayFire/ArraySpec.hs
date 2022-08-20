@@ -6,7 +6,7 @@ import Control.Exception
 import Data.Complex
 import Data.Word
 import Foreign.C.Types
-import Foreign.Marshal.Array (peekArray)
+import Foreign.Marshal.Array (peekArray, withArray)
 import GHC.Int
 import Test.Hspec
 
@@ -162,3 +162,9 @@ spec =
         let arr = scalar 2 + mkArray @Float [3] (repeat 5.5)
         withDevicePtr arr $ \cpuPtr ->
           peekArray 3 cpuPtr `shouldReturn` (take 3 (repeat 7.5))
+
+    it "Should copy data to host buffers" $ do
+      let arr = mkArray @Word [10] [1..10]
+      withArray (take 10 (repeat 0)) $ \hostPtr -> do
+        unsafeCopyData arr hostPtr
+        peekArray 10 hostPtr `shouldReturn` [1..10]
