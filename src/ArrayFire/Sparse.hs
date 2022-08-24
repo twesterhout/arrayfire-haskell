@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      : ArrayFire.Sparse
@@ -20,11 +21,17 @@
 --------------------------------------------------------------------------------
 module ArrayFire.Sparse where
 
-import ArrayFire.Types
+import ArrayFire.Exception (throwAFError, af_release_array_finalizer)
 import ArrayFire.FFI
 import ArrayFire.Internal.Sparse
 import ArrayFire.Internal.Types
+import ArrayFire.Array (getType)
+import Control.Exception (assert)
 import Data.Int
+import Foreign.Marshal.Alloc (alloca)
+import Foreign.Storable (peek)
+import Foreign.ForeignPtr (newForeignPtr, withForeignPtr)
+import System.IO.Unsafe (unsafePerformIO)
 
 -- | This function converts af::array of values, row indices and column indices into a sparse array.
 --
@@ -231,12 +238,31 @@ sparseToDense = (`op1` af_sparse_to_dense)
 -- CSR
 --
 sparseGetInfo
-  :: (AFType a, Fractional a)
+  :: AFType a
   => Array a
-  -> (Array a, Array a, Array a, Storage)
-sparseGetInfo x = do
-  let (a,b,c,d) = x `op3p1` af_sparse_get_info
-  (a,b,c,fromStorage d)
+  -> (Array a, Array Int32, Array Int32, Storage)
+sparseGetInfo (Array fptr) =
+  -- ArrayFire uses 'int' to store rowIdx and colIdx in SparseArrayBase,
+  -- but this is undocumented, so it could potentially change...
+  assert (getType rows' == S32 && getType cols' == S32) $
+    (values', rows', cols', stype')
+  where
+    (values', rows' :: Array Int32, cols' :: Array Int32, stype') =
+      unsafePerformIO $ do
+        (values, rows, cols, stype) <- withForeignPtr fptr $ \inPtr -> do
+          alloca $ \valuesPtr ->
+            alloca $ \rowIdxPtr ->
+              alloca $ \colIdxPtr ->
+                alloca $ \stypePtr -> do
+                  throwAFError =<< af_sparse_get_info valuesPtr rowIdxPtr colIdxPtr stypePtr inPtr
+                  (,,,) <$> peek valuesPtr
+                        <*> peek rowIdxPtr
+                        <*> peek colIdxPtr
+                        <*> peek stypePtr
+        (,,,) <$> (Array <$> newForeignPtr af_release_array_finalizer values)
+              <*> (Array <$> newForeignPtr af_release_array_finalizer rows)
+              <*> (Array <$> newForeignPtr af_release_array_finalizer cols)
+              <*> pure (fromStorage stype)
 
 -- | Returns reference to the values component of the sparse array.
 --
