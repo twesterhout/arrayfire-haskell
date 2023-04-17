@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE ViewPatterns        #-}
 --------------------------------------------------------------------------------
 -- |
@@ -18,9 +20,18 @@
 --------------------------------------------------------------------------------
 module ArrayFire.Device where
 
+import Control.Exception
+import Data.Proxy
 import Foreign.C.String
-import ArrayFire.Internal.Device
+import Foreign.ForeignPtr
+import Foreign.Marshal (alloca, withArrayLen)
+import Foreign.Ptr
+import Foreign.Storable
+import ArrayFire.Exception
 import ArrayFire.FFI
+import ArrayFire.Internal.Defines
+import ArrayFire.Internal.Device
+import ArrayFire.Internal.Types
 
 -- | Retrieve info from ArrayFire API
 --
@@ -70,6 +81,34 @@ setDevice (fromIntegral -> x) = afCall (af_set_device x)
 getDevice :: IO Int
 getDevice = fromIntegral <$> afCall1 af_get_device
 
+-- | Get the device pointer to the underlying memory.
+--
+-- You have to call 'unsafeLockDevicePtr' after you are done.
+--
+-- Use 'withDevicePtr' instead whenever possible.
+unsafeGetDevicePtr :: Array a -> IO (Ptr a)
+unsafeGetDevicePtr (Array fptr) =
+  mask_ . withForeignPtr fptr $ \arr ->
+    alloca $ \devicePtrPtr -> do
+      throwAFError =<< af_get_device_ptr devicePtrPtr arr
+      castPtr @() @_ <$> peek devicePtrPtr
+
+-- | Give control of the device pointer back to ArrayFire.
+unsafeLockDevicePtr :: Array a -> IO ()
+unsafeLockDevicePtr arr = inPlace arr af_lock_device_ptr
+
+-- | Do something with the device pointer to the underlying memory.
+withDevicePtr :: Array a -> (Ptr a -> IO b) -> IO b
+withDevicePtr arr =
+  bracket (unsafeGetDevicePtr arr) (const (unsafeLockDevicePtr arr))
+
+-- | Wrap device pointer into an 'Array'. ArrayFire takes ownership of the pointer.
+mkDeviceArray :: forall a. AFType a => Ptr a -> [Int] -> IO (Array a)
+mkDeviceArray (castPtr -> devicePtr) dims =
+  withArrayLen (DimT . fromIntegral <$> dims) $ \(fromIntegral -> n) dimsPtr ->
+    createArray' $ \arr ->
+      af_device_array arr devicePtr n dimsPtr (afType (Proxy @a))
+
 -- af_err af_sync(const int device);
 -- af_err af_alloc_device(void **ptr, const dim_t bytes);
 -- af_err af_free_device(void *ptr);
@@ -77,14 +116,11 @@ getDevice = fromIntegral <$> afCall1 af_get_device
 -- af_err af_free_pinned(void *ptr);
 -- af_err af_alloc_host(void **ptr, const dim_t bytes);
 -- af_err af_free_host(void *ptr);
--- af_err af_device_array(af_array *arr, const void *data, const unsigned ndims, const dim_t * const dims, const af_dtype type);
 -- af_err af_device_mem_info(size_t *alloc_bytes, size_t *alloc_buffers, size_t *lock_bytes, size_t *lock_buffers);
 -- af_err af_print_mem_info(const char *msg, const int device_id);
 -- af_err af_device_gc();
 -- af_err af_set_mem_step_size(const size_t step_bytes);
 -- af_err af_get_mem_step_size(size_t *step_bytes);
 -- af_err af_lock_device_ptr(const af_array arr);
--- af_err af_unlock_device_ptr(const af_array arr);
 -- af_err af_lock_array(const af_array arr);
 -- af_err af_is_locked_array(bool *res, const af_array arr);
--- af_err af_get_device_ptr(void **ptr, const af_array arr);
