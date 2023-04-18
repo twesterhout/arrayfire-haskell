@@ -246,7 +246,9 @@ getDataRefCount
 getDataRefCount =
   fromIntegral . (`infoFromArray` af_get_data_ref_count)
 
--- af_err af_eval(af_array in);
+-- | Evaluate any expressions in the 'Array'. The array itself is returned.
+eval :: AFType a => Array a -> Array a
+eval arr = unsafePerformIO $ inPlace arr af_eval >> pure arr
 -- af_err af_eval_multiple(const int num, af_array *arrays);
 
 -- | Should manual evaluation occur

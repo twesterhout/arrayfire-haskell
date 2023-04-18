@@ -27,6 +27,7 @@ import Foreign.ForeignPtr
 import Foreign.Marshal (alloca, withArrayLen)
 import Foreign.Ptr
 import Foreign.Storable
+import ArrayFire.Array
 import ArrayFire.Exception
 import ArrayFire.FFI
 import ArrayFire.Internal.Defines
@@ -99,7 +100,7 @@ unsafeLockDevicePtr arr = inPlace arr af_lock_device_ptr
 
 -- | Do something with the device pointer to the underlying memory.
 withDevicePtr :: Array a -> (Ptr a -> IO b) -> IO b
-withDevicePtr arr =
+withDevicePtr (eval -> arr) =
   bracket (unsafeGetDevicePtr arr) (const (unsafeLockDevicePtr arr))
 
 -- | Wrap device pointer into an 'Array'. ArrayFire takes ownership of the pointer.
