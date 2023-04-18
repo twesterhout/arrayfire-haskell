@@ -99,7 +99,7 @@ unsafeLockDevicePtr :: Array a -> IO ()
 unsafeLockDevicePtr arr = inPlace arr af_lock_device_ptr
 
 -- | Do something with the device pointer to the underlying memory.
-withDevicePtr :: Array a -> (Ptr a -> IO b) -> IO b
+withDevicePtr :: AFType a => Array a -> (Ptr a -> IO b) -> IO b
 withDevicePtr (eval -> arr) =
   bracket (unsafeGetDevicePtr arr) (const (unsafeLockDevicePtr arr))
 
