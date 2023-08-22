@@ -30,9 +30,9 @@ spec =
     -- Exact comparisons of Double don't make sense here, so we just check that the result is
     -- accurate up to some epsilon.
     it "Should take cubed root" $ do
-      allTrueAll ((abs (3 - cbrt @Double 27)) `lt` 1.0e-12) `shouldBe` (1, 0)
+      allTrueAll (abs (3 - cbrt @Double 27) `lt` 1.0e-12) `shouldBe` (1, 0)
     it "Should take square root" $ do
-      allTrueAll ((abs (2 - sqrt @Double 4)) `lt` 1.0e-12) `shouldBe` (1, 0)
+      allTrueAll (abs (2 - sqrt @Double 4) `lt` 1.0e-12) `shouldBe` (1, 0)
 
     it "Should lte Array" $ do
       2 `le` (3 :: Array Double) `shouldBe` 1
