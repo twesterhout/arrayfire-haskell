@@ -51,6 +51,7 @@ import           System.IO.Unsafe
 import           ArrayFire.Exception
 import           ArrayFire.FFI
 import           ArrayFire.Util
+import           ArrayFire.Device (unsafeGetDevicePtr, unsafeUnlockDevicePtr)
 import           ArrayFire.Internal.Array
 import           ArrayFire.Internal.Defines
 import           ArrayFire.Internal.Types
@@ -246,7 +247,27 @@ getDataRefCount
 getDataRefCount =
   fromIntegral . (`infoFromArray` af_get_data_ref_count)
 
--- af_err af_eval(af_array in);
+-- | Force evaluation of an array
+--
+-- >>> someArray = scalar @Double 5 + scalar @Double 10
+-- >>> manualEval someArray
+-- ()
+manualEval
+  :: AFType a
+  => Array a
+  -> IO ()
+manualEval = (`inPlace` af_eval)
+
+-- | Temporarily get the underlying device data pointer
+withDevicePtr
+  :: AFType a
+  => Array a
+  -> (Ptr a -> IO b)
+  -> IO b
+withDevicePtr arr op = do
+  manualEval arr
+  bracket (unsafeGetDevicePtr arr) (\_ -> unsafeUnlockDevicePtr arr) op
+
 -- af_err af_eval_multiple(const int num, af_array *arrays);
 
 -- | Should manual evaluation occur

@@ -26,7 +26,7 @@
 module ArrayFire.Types
   ( AFException         (..)
   , AFExceptionType     (..)
-  , Array
+  , Array               (..)
   , Window
   , RandomEngine
   , Features
