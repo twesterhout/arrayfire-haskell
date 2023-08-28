@@ -179,25 +179,38 @@ mkArray
 {-# NOINLINE mkArray #-}
 mkArray dims xs =
   unsafePerformIO $ do
-    when (Prelude.length (take size xs) < size) $ do
-      let msg = "Invalid elements provided. "
+    let size  = Prelude.product dims
+        xs' = take size xs
+    when (Prelude.length xs' < size) $ do
+      let msg = "Invalid number of elements provided. "
            <> "Expected "
            <> show size
            <> " elements received "
            <> show (Prelude.length xs)
       throwIO (AFException SizeError 203 msg)
-    dataPtr <- castPtr <$> newArray (Prelude.take size xs)
-    let ndims = fromIntegral (Prelude.length dims)
-    alloca $ \arrayPtr -> do
-      zeroOutArray arrayPtr
-      dimsPtr <- newArray (DimT . fromIntegral <$> dims)
-      throwAFError =<< af_create_array arrayPtr dataPtr ndims dimsPtr dType
-      free dataPtr >> free dimsPtr
-      arr <- peek arrayPtr
-      Array <$> newForeignPtr af_release_array_finalizer arr
-    where
-      size  = Prelude.product dims
-      dType = afType (Proxy @array)
+    withArray xs' (mkArrayFromHostPtr dims)
+
+-- | Construct an 'Array' from a host memory pointer.
+--
+-- ArrayFire creates a copy of the data, so the pointer may be freed after this call.
+--
+-- Note that ArrayFire uses column-major ordering.
+mkArrayFromHostPtr
+  :: forall a
+   . AFType a
+  => [Int]
+  -> Ptr a
+  -> IO (Array a)
+mkArrayFromHostPtr dims hostPtr =
+  alloca $ \arrayPtr -> do
+    zeroOutArray arrayPtr
+    withArrayLen (DimT . fromIntegral <$> dims) $ \(fromIntegral -> ndims) dimsPtr ->
+      throwAFError
+        =<< af_create_array arrayPtr (castPtr @_ @() hostPtr) ndims dimsPtr dType
+    arr <- peek arrayPtr
+    Array <$> newForeignPtr af_release_array_finalizer arr
+  where
+    dType = afType (Proxy @a)
 
 -- af_err af_create_handle(af_array *arr, const unsigned ndims, const dim_t * const dims, const af_dtype type);
 
