@@ -162,6 +162,7 @@ test-suite test
     Haskell2010
   other-modules:
     Spec
+    Util
     ArrayFire.AlgorithmSpec
     ArrayFire.ArithSpec
     ArrayFire.ArraySpec

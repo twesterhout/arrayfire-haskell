@@ -1,28 +1,5 @@
 {
   "nodes": {
-    "arrayfire-nix": {
-      "inputs": {
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1692793973,
-        "narHash": "sha256-6dG41ile3T+6dfRazlcPBdKBarGesswsBpb40Lcf35U=",
-        "owner": "twesterhout",
-        "repo": "arrayfire-nix",
-        "rev": "4236770612b80a3f29adbd8d670f6cea2bc098ba",
-        "type": "github"
-      },
-      "original": {
-        "owner": "twesterhout",
-        "repo": "arrayfire-nix",
-        "type": "github"
-      }
-    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -58,23 +35,22 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1692638711,
-        "narHash": "sha256-J0LgSFgJVGCC1+j5R2QndadWI1oumusg6hCtYAzLID4=",
-        "owner": "nixos",
+        "lastModified": 1698834834,
+        "narHash": "sha256-sznctlJyE2cCt0HfaquS3YCcQA6Q0myMxyIoQlRqNek=",
+        "owner": "twesterhout",
         "repo": "nixpkgs",
-        "rev": "91a22f76cd1716f9d0149e8a5c68424bb691de15",
+        "rev": "595324b225f48ca38ffa3d40817046de024f6f39",
         "type": "github"
       },
       "original": {
-        "owner": "nixos",
-        "ref": "nixos-unstable",
+        "owner": "twesterhout",
+        "ref": "arrayfire-3.9.0",
         "repo": "nixpkgs",
         "type": "github"
       }
     },
     "root": {
       "inputs": {
-        "arrayfire-nix": "arrayfire-nix",
         "flake-utils": "flake-utils",
         "nix-filter": "nix-filter",
         "nixpkgs": "nixpkgs"

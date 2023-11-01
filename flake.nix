@@ -2,14 +2,9 @@
   description = "arrayfire/arrayfire-haskell: ArrayFire Haskell bindings";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:twesterhout/nixpkgs/arrayfire-3.9.0";
     flake-utils.url = "github:numtide/flake-utils";
     nix-filter.url = "github:numtide/nix-filter";
-    arrayfire-nix = {
-      url = "github:twesterhout/arrayfire-nix";
-      inputs.flake-utils.follows = "flake-utils";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = inputs:
@@ -69,7 +64,6 @@
       pkgs-for = system: import inputs.nixpkgs {
         inherit system;
         overlays = [
-          inputs.arrayfire-nix.overlays.default
           arrayfire-haskell-overlay
         ];
       };
