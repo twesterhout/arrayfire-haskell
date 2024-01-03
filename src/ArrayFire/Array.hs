@@ -230,6 +230,18 @@ copyArray = (`op1` af_copy_array)
 -- af_err af_write_array(af_array arr, const void *data, const size_t bytes, af_source src);
 -- af_err af_get_data_ptr(void *data, const af_array arr);
 
+-- | Copies data from an 'Array' to C pointer.
+copyArrayToPtr
+  :: AFType a
+  => Array a
+  -- ^ Array to be copied
+  -> Ptr a
+  -- ^ Destination pointer
+  -> IO ()
+copyArrayToPtr (Array fp) destPtr =
+  withForeignPtr fp $ \arr ->
+    afCall $ af_get_data_ptr (castPtr destPtr) arr
+
 -- | Retains an 'Array', increases reference count
 --
 -- >>> retainArray (scalar @Double 10)
